@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Dino Memoryspiel</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f8ff;
+      text-align: center;
+    }
+    h1 {
+      color: #2e8b57;
+    }
+    .score-board {
+      margin-top: 10px;
+      font-size: 18px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #2e8b57;
+      color: white;
+      cursor: pointer;
+    }
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(6, 100px);
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .card {
+      width: 100px;
+      height: 100px;
+      background: #fff;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s;
+      overflow: hidden;
+    }
+    .card img {
+      width: 90%;
+      height: 90%;
+      display: none;
+    }
+    .card.flipped img {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>🦖 Dino-Memoryspiel</h1>
+  <div class="score-board">
+    Punkte: <span id="score">0</span>
+  </div>
+  <button onclick="initGame()">🔄 Spiel neu starten</button>
+  <div class="game-board" id="gameBoard"></div>
+  <audio id="matchSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+
+  <script>
+    (() => {
+      const dinoImageURLs = [
+        'https://i.imgur.com/TLgfYGU.png',
+        'https://i.imgur.com/mqtE0d3.png',
+        'https://i.imgur.com/2uB3oNz.png',
+        'https://i.imgur.com/1Wl2YhM.png',
+        'https://i.imgur.com/xYkT62H.png',
+        'https://i.imgur.com/YQePiPb.png'
+      ];
+
+      let board, scoreElement, matchSound;
+      let firstCard = null;
+      let lockBoard = false;
+      let score = 0;
+
+      window.initGame = function() {
+        board.innerHTML = '';
+        firstCard = null;
+        lockBoard = false;
+        score = 0;
+        scoreElement.textContent = '0';
+
+        const images = [...dinoImageURLs, ...dinoImageURLs];
+        const shuffled = images.sort(() => 0.5 - Math.random());
+
+        shuffled.forEach((url) => {
+          const card = document.createElement('div');
+          card.classList.add('card');
+          card.dataset.symbol = url;
+
+          const img = document.createElement('img');
+          img.src = url;
+          card.appendChild(img);
+
+          card.addEventListener('click', () => {
+            if (lockBoard || card.classList.contains('flipped')) return;
+            card.classList.add('flipped');
+
+            if (!firstCard) {
+              firstCard = card;
+            } else {
+              if (firstCard.dataset.symbol === card.dataset.symbol) {
+                matchSound.play();
+                firstCard = null;
+                score++;
+                scoreElement.textContent = score;
+              } else {
+                lockBoard = true;
+                setTimeout(() => {
+                  card.classList.remove('flipped');
+                  firstCard.classList.remove('flipped');
+                  firstCard = null;
+                  lockBoard = false;
+                }, 1000);
+              }
+            }
+          });
+
+          board.appendChild(card);
+        });
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        board = document.getElementById('gameBoard');
+        scoreElement = document.getElementById('score');
+        matchSound = document.getElementById('matchSound');
+        initGame();
+      });
+    })();
+  </script>
+</body>
+</html>
